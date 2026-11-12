@@ -199,7 +199,6 @@ init();
 
 function init() {
   scene = new THREE.Scene();
-  // Fundo escuro para contrastar
   scene.background = new THREE.Color(0x111111); 
   scene.fog = new THREE.FogExp2(0x111111, 0.015); 
 
@@ -216,16 +215,16 @@ function init() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   
-  // Exposição equilibrada
-  renderer.toneMappingExposure = 0.9; 
+  // Exposição reduzida para equilíbrio
+  renderer.toneMappingExposure = 0.55; 
   
   document.getElementById("app").appendChild(renderer.domElement);
 
   const renderScene = new RenderPass(scene, camera);
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.4, 0.85);
-  bloomPass.threshold = 1.0; 
-  bloomPass.strength = 0.4;
-  bloomPass.radius = 0.3;
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.2, 0.2, 0.9);
+  bloomPass.threshold = 1.1; 
+  bloomPass.strength = 0.2;
+  bloomPass.radius = 0.1;
 
   composer = new EffectComposer(renderer);
   composer.addPass(renderScene);
@@ -280,7 +279,6 @@ function makeCanvasTexture(width, height, draw, repeatX = 1, repeatY = 1) {
 }
 
 function createTextures() {
-  // Piso Xadrez de Mármore
   const floorColor = makeCanvasTexture(1024, 1024, (ctx, w, h) => {
     const tileSize = 128;
     for (let x = 0; x < w; x += tileSize) {
@@ -320,15 +318,13 @@ function createTextures() {
     }
   });
 
-  // Fundo Falso do Céu (Skybox)
   const skyTexture = makeCanvasTexture(1024, 512, (ctx, w, h) => {
     const gradient = ctx.createLinearGradient(0, 0, 0, h);
-    gradient.addColorStop(0, "#4a7ea8"); // Azul céu
-    gradient.addColorStop(1, "#e8d1a7"); // Tom quente perto do horizonte
+    gradient.addColorStop(0, "#2c4a6b"); // Azul mais escuro
+    gradient.addColorStop(1, "#c2a786"); // Tom de pôr do sol suave
     ctx.fillStyle = gradient; ctx.fillRect(0, 0, w, h);
-    // Nuvens pintadas
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    for(let i=0; i<20; i++) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+    for(let i=0; i<15; i++) {
       ctx.beginPath(); ctx.arc(Math.random()*w, Math.random()*h*0.8, Math.random()*50+20, 0, Math.PI*2); ctx.fill();
     }
   });
@@ -343,20 +339,19 @@ function buildRotunda() {
   const tex = createTextures();
 
   M = {
-    floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.65, metalness: 0.1 }),
+    floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.7, metalness: 0.1 }),
     wall: new THREE.MeshStandardMaterial({ map: tex.wallColor, roughness: 0.9, metalness: 0.0 }),
     wood: new THREE.MeshStandardMaterial({ map: tex.woodTexture, roughness: 0.8, metalness: 0.1 }),
-    marble: new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.6, metalness: 0.1 }), 
+    // Mármore cinza pedra (evita estourar no branco)
+    marble: new THREE.MeshStandardMaterial({ color: 0xb0a89a, roughness: 0.6, metalness: 0.1 }), 
     gold: new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4, metalness: 0.8 }),
     sketch: new THREE.MeshStandardMaterial({ map: tex.sketchTexture, roughness: 0.8 }),
     book: new THREE.MeshStandardMaterial({ color: 0x5a1c1c, roughness: 0.6 }),
-    paper: new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.9 }),
-    glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 2.0 }),
-    // Vidro transparente para ver o céu falso
+    paper: new THREE.MeshStandardMaterial({ color: 0xd1c9b8, roughness: 0.9 }),
+    glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 1.5 }),
     windowGlass: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 }) 
   };
 
-  // Chão e Teto
   const floor = new THREE.Mesh(new THREE.CircleGeometry(ROOM_RADIUS, 64), M.floor);
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
@@ -366,13 +361,11 @@ function buildRotunda() {
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS, ROOM_RADIUS, ROOM_HEIGHT, 64, 1, true), M.wall);
   wall.position.y = ROOM_HEIGHT / 2; wall.receiveShadow = true; scene.add(wall);
 
-  // Fundo Falso (Céu)
   const skyMat = new THREE.MeshBasicMaterial({ map: tex.skyTexture, side: THREE.BackSide });
   const skybox = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS + 5, ROOM_RADIUS + 5, ROOM_HEIGHT * 2, 32), skyMat);
   skybox.position.y = ROOM_HEIGHT / 2;
   scene.add(skybox);
 
-  // Arquitetura (Colunas e Janelas Grandes)
   const numSections = 16;
   for (let i = 0; i < numSections; i++) {
     const angle = (i / numSections) * Math.PI * 2;
@@ -396,7 +389,6 @@ function buildRotunda() {
     }
   }
 
-  // Estantes
   for (let i = 0; i < numSections; i++) {
     const angle = (i / numSections) * Math.PI * 2 + (Math.PI / numSections);
     const sx = Math.cos(angle) * (ROOM_RADIUS - 1.2);
@@ -404,7 +396,6 @@ function buildRotunda() {
     buildBookshelf(sx, sz, angle);
   }
 
-  // Estátuas de Chapéu de Chef
   for (let i = 0; i < 8; i++) {
     const angle = (i / 8) * Math.PI * 2 + Math.PI/8;
     const r = 11;
@@ -413,7 +404,6 @@ function buildRotunda() {
     addChefHatStatue(x, z, angle);
   }
 
-  // Mesas
   for (let i = 0; i < 4; i++) {
     const angle = (i / 4) * Math.PI * 2 + Math.PI/4;
     const r = 5;
@@ -422,7 +412,6 @@ function buildRotunda() {
     addReadingArea(x, z, angle);
   }
 
-  // Exposições
   EXHIBIT_IDS.forEach((id, index) => {
     const data = EXHIBITS[id]; if (!data) return;
     const angle = EXHIBIT_ANGLES[index];
@@ -432,43 +421,38 @@ function buildRotunda() {
 
   addChandelier();
 
-  // ===== ILUMINAÇÃO AMBIENTE =====
-  const ambient = new THREE.AmbientLight(0xfffaee, 0.5); 
+  // ===== ILUMINAÇÃO AMBIENTE BALANCEADA =====
+  const ambient = new THREE.AmbientLight(0xfffaee, 0.2); 
   scene.add(ambient);
   
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5); 
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.3); 
   scene.add(hemi);
 }
 
 function addWindow(x, z, angle) {
   const group = new THREE.Group();
-  group.position.set(x, ROOM_HEIGHT / 2, z); // Centralizado verticalmente
+  group.position.set(x, ROOM_HEIGHT / 2, z);
   group.rotation.y = -angle + Math.PI / 2;
 
-  const w = 4.0, h = 8.0; // Janela Grande e Retangular
+  const w = 4.0, h = 8.0;
   const frameMat = M.wood;
 
-  // Vidro transparente
   const glass = new THREE.Mesh(new THREE.PlaneGeometry(w, h), M.windowGlass);
   group.add(glass);
 
-  // Moldura Externa
   addBox(w + 0.4, 0.4, 0.3, frameMat, 0, h/2, 0, 0, group, false);
   addBox(w + 0.4, 0.4, 0.3, frameMat, 0, -h/2, 0, 0, group, false);
   addBox(0.4, h + 0.4, 0.3, frameMat, -w/2, 0, 0, 0, group, false);
   addBox(0.4, h + 0.4, 0.3, frameMat, w/2, 0, 0, 0, group, false);
-
-  // Grade Interna (Mullions)
-  addBox(0.1, h, 0.15, frameMat, 0, 0, 0, 0, group, false); // Vertical
-  addBox(w, 0.1, 0.15, frameMat, 0, 0, 0, 0, group, false); // Horizontal Meio
-  addBox(w, 0.1, 0.15, frameMat, 0, h/4, 0, 0, group, false); // Horizontal Cima
-  addBox(w, 0.1, 0.15, frameMat, 0, -h/4, 0, 0, group, false); // Horizontal Baixo
+  addBox(0.1, h, 0.15, frameMat, 0, 0, 0, 0, group, false); 
+  addBox(w, 0.1, 0.15, frameMat, 0, 0, 0, 0, group, false); 
+  addBox(w, 0.1, 0.15, frameMat, 0, h/4, 0, 0, group, false); 
+  addBox(w, 0.1, 0.15, frameMat, 0, -h/4, 0, 0, group, false); 
 
   scene.add(group);
 
-  // ===== LUZ DO SOL ENTRANDO =====
-  // Direcional apontando para o centro do museu
-  const sun = new THREE.DirectionalLight(0xfff5e6, 2.5);
+  // LUZ DO SOL SUAVE (Reduzida de 2.5 para 0.8)
+  const sun = new THREE.DirectionalLight(0xffe8cc, 0.8);
   sun.position.set(x * 1.5, ROOM_HEIGHT, z * 1.5); 
   sun.target.position.set(0, 0, 0); 
   sun.castShadow = true;
@@ -482,16 +466,14 @@ function addWindow(x, z, angle) {
   scene.add(sun);
   scene.add(sun.target);
 
-  // Feixe de luz visível retangular (Volumétrico)
+  // Feixe de luz volumétrico SUTIL (Reduzido de 0.06 para 0.02 de opacidade)
   const beamMat = new THREE.MeshBasicMaterial({ 
-    color: 0xfff5e6, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false 
+    color: 0xffe8cc, transparent: true, opacity: 0.02, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false 
   });
   
-  // Simula o feixe de luz retangular batendo no chão
-  const beamGeom = new THREE.BoxGeometry(w * 0.9, 25, 12);
+  const beamGeom = new THREE.BoxGeometry(w * 0.8, 25, 8);
   const beam = new THREE.Mesh(beamGeom, beamMat);
-  // Posiciona o feixe no chão e inclina para vir da janela
-  beam.position.set(0, -4, 5); 
+  beam.position.set(0, -4, 4); 
   beam.rotation.x = Math.PI / 8; 
   group.add(beam);
 }
@@ -520,20 +502,20 @@ function addChandelier() {
     flame.position.set(cx, 0.65, cz);
     group.add(flame);
 
-    const light = new THREE.PointLight(0xffaa55, 0.8, 10, 2);
+    const light = new THREE.PointLight(0xffaa55, 0.3, 8, 2);
     light.position.set(cx, 0.6, cz);
     group.add(light);
   }
 
   scene.add(group);
 
-  const mainLight = new THREE.PointLight(0xffddaa, 4, 25, 2);
+  // Luz Central do Lustre (Reduzida de 4 para 1.2)
+  const mainLight = new THREE.PointLight(0xffddaa, 1.2, 20, 2);
   mainLight.position.set(0, ROOM_HEIGHT - 2, 0);
   mainLight.castShadow = true;
   scene.add(mainLight);
 }
 
-// ESTÁTUA DE CHAPÉU DE CHEF
 function addChefHatStatue(x, z, angle) {
   const group = new THREE.Group();
   group.position.set(x, 0, z);
@@ -587,7 +569,7 @@ function addReadingArea(x, z, angle) {
   const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.4, 16), M.marble);
   lampShade.position.set(0, 1.4, 0); group.add(lampShade);
 
-  const lampLight = new THREE.PointLight(0xffeedd, 1.2, 5, 2);
+  const lampLight = new THREE.PointLight(0xffeedd, 0.6, 4, 2);
   lampLight.position.set(0, 1.3, 0); group.add(lampLight);
 
   const chair1 = createChair(); chair1.position.set(-0.7, 0, -0.9); group.add(chair1);
@@ -655,7 +637,7 @@ function createExhibit(data, x, z) {
   const top = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.1, 16), M.sketch);
   top.position.y = 1.05; top.castShadow = true; group.add(top);
 
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.04, 8, 32), M.gold);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.04, 8, 32), M.glow);
   ring.rotation.x = Math.PI / 2; ring.position.y = 1.15; group.add(ring);
 
   const book = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.08, 0.42), M.book);
@@ -673,7 +655,7 @@ function createExhibit(data, x, z) {
 
   scene.add(group);
 
-  const light = new THREE.PointLight(0x00ffff, 0.8, 4, 2);
+  const light = new THREE.PointLight(0x00ffff, 0.5, 3, 2);
   light.position.set(x, 1.5, z); scene.add(light);
   group.userData.light = light; 
 }
@@ -716,7 +698,7 @@ function buildParticles() {
   dGeom.setAttribute("color", new THREE.BufferAttribute(dColors, 3));
 
   const dMat = new THREE.PointsMaterial({
-    size: 0.05, vertexColors: true, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending
+    size: 0.04, vertexColors: true, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending
   });
   dustParticles = new THREE.Points(dGeom, dMat);
   scene.add(dustParticles);
@@ -985,7 +967,7 @@ function animate() {
     if (group.userData.ring) group.userData.ring.rotation.z += delta * 1.5;
     if (group.userData.book) {
       group.userData.book.position.y = group.userData.bookBaseY + Math.sin(elapsed * 2 + group.position.z) * 0.05;
-      if (group.userData.light) group.userData.light.intensity = 0.8 + Math.sin(elapsed * 3) * 0.2;
+      if (group.userData.light) group.userData.light.intensity = 0.5 + Math.sin(elapsed * 3) * 0.1;
     }
   });
 
