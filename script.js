@@ -208,7 +208,6 @@ function init() {
   camera.lookAt(0, EYE_HEIGHT, 0);
   camera.rotation.order = 'YXZ';
 
-  // 1. PRIMEIRO O RENDERER
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -219,11 +218,9 @@ function init() {
   renderer.toneMappingExposure = 0.9; 
   document.getElementById("app").appendChild(renderer.domElement);
 
-  // 2. DEPOIS O ENVIRONMENT MAP (Para os reflexos)
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
-  // 3. POST-PROCESSING (Bloom)
   const renderScene = new RenderPass(scene, camera);
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.3, 0.85);
   bloomPass.threshold = 1.0; 
@@ -313,10 +310,11 @@ function createTextures() {
     }
   }, 2, 2);
 
+  // TEXTURA DE RABISCO MELHORADA (Cor base mais escura para não brilhar tanto)
   const sketchTexture = makeCanvasTexture(512, 512, (ctx, w, h) => {
-    ctx.fillStyle = "#c1b8a5"; ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = "rgba(30, 30, 30, 0.2)"; ctx.lineWidth = 2;
-    for(let i=0; i<80; i++) {
+    ctx.fillStyle = "#8f8576"; ctx.fillRect(0, 0, w, h); // Bege escuro/papel velho
+    ctx.strokeStyle = "rgba(30, 30, 30, 0.4)"; ctx.lineWidth = 2;
+    for(let i=0; i<100; i++) {
       ctx.beginPath(); let x = Math.random() * w; let y = Math.random() * h;
       ctx.moveTo(x, y); ctx.lineTo(x + (Math.random()*80-40), y + (Math.random()*80-40)); ctx.stroke();
     }
@@ -332,13 +330,11 @@ function buildRotunda() {
   const tex = createTextures();
 
   M = {
-    // Piso reflexivo
     floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.15, metalness: 0.9, envMapIntensity: 1.5 }),
     wall: new THREE.MeshStandardMaterial({ map: tex.wallColor, roughness: 0.9, metalness: 0.0 }),
     wood: new THREE.MeshStandardMaterial({ map: tex.woodTexture, roughness: 0.8, metalness: 0.1 }),
-    // Mármore polido (reflete ambiente)
-    marble: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.2, metalness: 0.1, envMapIntensity: 1.0 }), 
-    // Ouro brilhante
+    // MUDANÇA: O mármore agora usa a textura de rabisco!
+    marble: new THREE.MeshStandardMaterial({ map: tex.sketchTexture, roughness: 0.8, metalness: 0.0 }), 
     gold: new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.15, metalness: 1.0, envMapIntensity: 1.5 }),
     sketch: new THREE.MeshStandardMaterial({ map: tex.sketchTexture, roughness: 0.8 }),
     book: new THREE.MeshStandardMaterial({ color: 0x5a1c1c, roughness: 0.6 }),
@@ -470,7 +466,7 @@ function addChefHatStatue(x, z, angle) {
   group.position.set(x, 0, z);
   group.rotation.y = -angle + Math.PI / 2;
 
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 1.6), M.marble);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 1.6), M.marble); // Base agora é sketch
   base.position.y = 0.9; base.castShadow = true; base.receiveShadow = true; group.add(base);
   
   const trim = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.15, 1.8), M.gold);
@@ -479,15 +475,15 @@ function addChefHatStatue(x, z, angle) {
   const hatGroup = new THREE.Group();
   hatGroup.position.y = 1.8;
 
-  const hatBase = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.5, 0.8, 16), M.marble);
+  const hatBase = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.5, 0.8, 16), M.marble); // Sketch
   hatBase.position.y = 0.4; hatBase.castShadow = true; hatGroup.add(hatBase);
 
-  const hatTop = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), M.marble);
+  const hatTop = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), M.marble); // Sketch
   hatTop.position.y = 1.1; hatTop.scale.set(1, 1.2, 1); hatTop.castShadow = true; hatGroup.add(hatTop);
 
   for(let i=0; i<8; i++) {
     const a = (i/8) * Math.PI * 2;
-    const fold = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), M.marble);
+    const fold = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), M.marble); // Sketch
     fold.position.set(Math.cos(a)*0.7, 0.9, Math.sin(a)*0.7);
     hatGroup.add(fold);
   }
@@ -515,7 +511,7 @@ function addReadingArea(x, z, angle) {
   const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.4, 16), M.gold);
   lampBase.position.set(0, 1.1, 0); group.add(lampBase);
   
-  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.4, 16), M.marble);
+  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.4, 16), M.sketch);
   lampShade.position.set(0, 1.4, 0); group.add(lampShade);
 
   const lampLight = new THREE.PointLight(0xffeedd, 1.5, 5, 2);
@@ -580,9 +576,11 @@ function buildBookshelf(x, z, angle) {
 function createExhibit(data, x, z) {
   const group = new THREE.Group(); group.position.set(x, 0, z);
 
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 1.0, 16), M.marble);
+  // BASE DO PEDESTAL: Agora usa M.sketch (M.wood também ficaria bom, mas mantive o padrão)
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 1.0, 16), M.sketch);
   base.position.y = 0.5; base.castShadow = true; base.receiveShadow = true; group.add(base);
 
+  // TAMPO DO PEDESTAL: Usa M.sketch
   const top = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.1, 16), M.sketch);
   top.position.y = 1.05; top.castShadow = true; group.add(top);
 
