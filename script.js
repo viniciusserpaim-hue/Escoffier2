@@ -199,9 +199,9 @@ init();
 
 function init() {
   scene = new THREE.Scene();
-  // Fundo escurecido para dar contraste e profundidade
-  scene.background = new THREE.Color(0x2a261f); 
-  scene.fog = new THREE.FogExp2(0x2a261f, 0.02); 
+  // Fundo escuro para contrastar
+  scene.background = new THREE.Color(0x111111); 
+  scene.fog = new THREE.FogExp2(0x111111, 0.015); 
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 200);
   camera.position.set(0, EYE_HEIGHT, 10);
@@ -216,17 +216,16 @@ function init() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   
-  // Exposição drasticamente reduzida para não estourar o branco
-  renderer.toneMappingExposure = 0.45; 
+  // Exposição equilibrada
+  renderer.toneMappingExposure = 0.9; 
   
   document.getElementById("app").appendChild(renderer.domElement);
 
   const renderScene = new RenderPass(scene, camera);
-  // Bloom sutil e com threshold alto (só brilha janelas e ouro)
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.3, 0.2, 0.9);
-  bloomPass.threshold = 1.2; 
-  bloomPass.strength = 0.3;
-  bloomPass.radius = 0.2;
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.4, 0.85);
+  bloomPass.threshold = 1.0; 
+  bloomPass.strength = 0.4;
+  bloomPass.radius = 0.3;
 
   composer = new EffectComposer(renderer);
   composer.addPass(renderScene);
@@ -281,42 +280,34 @@ function makeCanvasTexture(width, height, draw, repeatX = 1, repeatY = 1) {
 }
 
 function createTextures() {
-  // Piso Xadrez de Mármore (Tons mais escuros para não refletir tanto)
+  // Piso Xadrez de Mármore
   const floorColor = makeCanvasTexture(1024, 1024, (ctx, w, h) => {
     const tileSize = 128;
     for (let x = 0; x < w; x += tileSize) {
       for (let y = 0; y < h; y += tileSize) {
         const isDark = (x / tileSize + y / tileSize) % 2 === 0;
-        ctx.fillStyle = isDark ? "#9e978d" : "#4a453e"; // Cinza claro e chumbo
+        ctx.fillStyle = isDark ? "#9e978d" : "#4a453e"; 
         ctx.fillRect(x, y, tileSize, tileSize);
-        
         ctx.strokeStyle = `rgba(0,0,0, 0.1)`;
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x, y + Math.random() * tileSize);
-        ctx.lineTo(x + tileSize, y + Math.random() * tileSize);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, y + Math.random() * tileSize); ctx.lineTo(x + tileSize, y + Math.random() * tileSize); ctx.stroke();
       }
     }
   }, 3, 3);
 
   const wallColor = makeCanvasTexture(512, 512, (ctx, w, h) => {
-    ctx.fillStyle = "#d1c9b8"; ctx.fillRect(0, 0, w, h); // Estuque mais escuro
-    ctx.fillStyle = "#2b160a"; ctx.fillRect(0, h * 0.7, w, h * 0.3); // Madeira
-    ctx.fillStyle = "#c9a76a"; ctx.fillRect(0, h * 0.68, w, 8); // Ouro
+    ctx.fillStyle = "#d1c9b8"; ctx.fillRect(0, 0, w, h); 
+    ctx.fillStyle = "#2b160a"; ctx.fillRect(0, h * 0.7, w, h * 0.3); 
+    ctx.fillStyle = "#c9a76a"; ctx.fillRect(0, h * 0.68, w, 8); 
     ctx.strokeStyle = "#1c0f08"; ctx.lineWidth = 4;
     ctx.strokeRect(20, h * 0.72, w - 40, h * 0.25);
   }, 8, 2);
 
   const woodTexture = makeCanvasTexture(512, 512, (ctx, w, h) => {
-    ctx.fillStyle = "#1f0e05"; ctx.fillRect(0, 0, w, h); // Madeira muito escura
+    ctx.fillStyle = "#1f0e05"; ctx.fillRect(0, 0, w, h); 
     for(let i=0; i<100; i++) {
-      ctx.strokeStyle = `rgba(60, 30, 15, ${0.2 + Math.random() * 0.4})`;
-      ctx.lineWidth = 1 + Math.random() * 3;
-      ctx.beginPath();
-      ctx.moveTo(0, Math.random() * h);
-      ctx.bezierCurveTo(w*0.3, Math.random()*h, w*0.7, Math.random()*h, w, Math.random()*h);
-      ctx.stroke();
+      ctx.strokeStyle = `rgba(60, 30, 15, ${0.2 + Math.random() * 0.4})`; ctx.lineWidth = 1 + Math.random() * 3;
+      ctx.beginPath(); ctx.moveTo(0, Math.random() * h); ctx.bezierCurveTo(w*0.3, Math.random()*h, w*0.7, Math.random()*h, w, Math.random()*h); ctx.stroke();
     }
   }, 2, 2);
 
@@ -324,16 +315,25 @@ function createTextures() {
     ctx.fillStyle = "#c1b8a5"; ctx.fillRect(0, 0, w, h);
     ctx.strokeStyle = "rgba(30, 30, 30, 0.2)"; ctx.lineWidth = 2;
     for(let i=0; i<80; i++) {
-      ctx.beginPath();
-      let x = Math.random() * w;
-      let y = Math.random() * h;
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + (Math.random()*80-40), y + (Math.random()*80-40));
-      ctx.stroke();
+      ctx.beginPath(); let x = Math.random() * w; let y = Math.random() * h;
+      ctx.moveTo(x, y); ctx.lineTo(x + (Math.random()*80-40), y + (Math.random()*80-40)); ctx.stroke();
     }
   });
 
-  return { floorColor, wallColor, woodTexture, sketchTexture };
+  // Fundo Falso do Céu (Skybox)
+  const skyTexture = makeCanvasTexture(1024, 512, (ctx, w, h) => {
+    const gradient = ctx.createLinearGradient(0, 0, 0, h);
+    gradient.addColorStop(0, "#4a7ea8"); // Azul céu
+    gradient.addColorStop(1, "#e8d1a7"); // Tom quente perto do horizonte
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, w, h);
+    // Nuvens pintadas
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    for(let i=0; i<20; i++) {
+      ctx.beginPath(); ctx.arc(Math.random()*w, Math.random()*h*0.8, Math.random()*50+20, 0, Math.PI*2); ctx.fill();
+    }
+  });
+
+  return { floorColor, wallColor, woodTexture, sketchTexture, skyTexture };
 }
 
 /* =========================================================
@@ -343,17 +343,17 @@ function buildRotunda() {
   const tex = createTextures();
 
   M = {
-    // Roughness alto (0.6) evita o reflexo de espelho que estava estourando a tela
     floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.65, metalness: 0.1 }),
     wall: new THREE.MeshStandardMaterial({ map: tex.wallColor, roughness: 0.9, metalness: 0.0 }),
     wood: new THREE.MeshStandardMaterial({ map: tex.woodTexture, roughness: 0.8, metalness: 0.1 }),
-    marble: new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 }), 
+    marble: new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.6, metalness: 0.1 }), 
     gold: new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4, metalness: 0.8 }),
     sketch: new THREE.MeshStandardMaterial({ map: tex.sketchTexture, roughness: 0.8 }),
     book: new THREE.MeshStandardMaterial({ color: 0x5a1c1c, roughness: 0.6 }),
     paper: new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.9 }),
-    glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 1.0 }),
-    windowGlass: new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff8e7, emissiveIntensity: 0.5, transparent: true, opacity: 0.8 })
+    glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 2.0 }),
+    // Vidro transparente para ver o céu falso
+    windowGlass: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 }) 
   };
 
   // Chão e Teto
@@ -366,7 +366,13 @@ function buildRotunda() {
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS, ROOM_RADIUS, ROOM_HEIGHT, 64, 1, true), M.wall);
   wall.position.y = ROOM_HEIGHT / 2; wall.receiveShadow = true; scene.add(wall);
 
-  // Arquitetura
+  // Fundo Falso (Céu)
+  const skyMat = new THREE.MeshBasicMaterial({ map: tex.skyTexture, side: THREE.BackSide });
+  const skybox = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS + 5, ROOM_RADIUS + 5, ROOM_HEIGHT * 2, 32), skyMat);
+  skybox.position.y = ROOM_HEIGHT / 2;
+  scene.add(skybox);
+
+  // Arquitetura (Colunas e Janelas Grandes)
   const numSections = 16;
   for (let i = 0; i < numSections; i++) {
     const angle = (i / numSections) * Math.PI * 2;
@@ -381,11 +387,9 @@ function buildRotunda() {
       const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, ROOM_HEIGHT, 16), M.marble);
       shaft.position.y = ROOM_HEIGHT / 2; shaft.castShadow = true; shaft.receiveShadow = true;
       colGroup.add(shaft);
-
       addBox(1.2, 0.5, 1.2, M.marble, 0, ROOM_HEIGHT - 0.25, 0, 0, colGroup, false);
       addBox(1.0, 0.3, 1.0, M.gold, 0, ROOM_HEIGHT - 0.6, 0, 0, colGroup, false);
       addBox(1.2, 0.4, 1.2, M.marble, 0, 0.2, 0, 0, colGroup, false);
-
       scene.add(colGroup);
     } else {
       addWindow(px, pz, angle);
@@ -400,13 +404,13 @@ function buildRotunda() {
     buildBookshelf(sx, sz, angle);
   }
 
-  // Estátuas
+  // Estátuas de Chapéu de Chef
   for (let i = 0; i < 8; i++) {
     const angle = (i / 8) * Math.PI * 2 + Math.PI/8;
     const r = 11;
     const x = Math.cos(angle) * r;
     const z = Math.sin(angle) * r;
-    addStatue(x, z, angle);
+    addChefHatStatue(x, z, angle);
   }
 
   // Mesas
@@ -428,43 +432,68 @@ function buildRotunda() {
 
   addChandelier();
 
-  // ===== ILUMINAÇÃO AMBIENTE (Fortemente reduzida) =====
-  const ambient = new THREE.AmbientLight(0xffffff, 0.15); 
+  // ===== ILUMINAÇÃO AMBIENTE =====
+  const ambient = new THREE.AmbientLight(0xfffaee, 0.5); 
   scene.add(ambient);
   
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.2); 
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5); 
   scene.add(hemi);
 }
 
 function addWindow(x, z, angle) {
   const group = new THREE.Group();
-  group.position.set(x, ROOM_HEIGHT / 2 + 1.5, z);
+  group.position.set(x, ROOM_HEIGHT / 2, z); // Centralizado verticalmente
   group.rotation.y = -angle + Math.PI / 2;
 
-  const frameMat = M.marble;
-  const w = 2.5, h = 4;
+  const w = 4.0, h = 8.0; // Janela Grande e Retangular
+  const frameMat = M.wood;
 
+  // Vidro transparente
   const glass = new THREE.Mesh(new THREE.PlaneGeometry(w, h), M.windowGlass);
   group.add(glass);
 
-  addBox(w, 0.1, 0.1, frameMat, 0, h/2, 0, 0, group, false);
-  addBox(w, 0.1, 0.1, frameMat, 0, -h/2, 0, 0, group, false);
-  addBox(0.1, h, 0.1, frameMat, -w/2, 0, 0, 0, group, false);
-  addBox(0.1, h, 0.1, frameMat, w/2, 0, 0, 0, group, false);
-  addBox(0.05, h, 0.1, frameMat, 0, 0, 0, 0, group, false);
-  addBox(w, 0.05, 0.1, frameMat, 0, 0, 0, 0, group, false);
+  // Moldura Externa
+  addBox(w + 0.4, 0.4, 0.3, frameMat, 0, h/2, 0, 0, group, false);
+  addBox(w + 0.4, 0.4, 0.3, frameMat, 0, -h/2, 0, 0, group, false);
+  addBox(0.4, h + 0.4, 0.3, frameMat, -w/2, 0, 0, 0, group, false);
+  addBox(0.4, h + 0.4, 0.3, frameMat, w/2, 0, 0, 0, group, false);
+
+  // Grade Interna (Mullions)
+  addBox(0.1, h, 0.15, frameMat, 0, 0, 0, 0, group, false); // Vertical
+  addBox(w, 0.1, 0.15, frameMat, 0, 0, 0, 0, group, false); // Horizontal Meio
+  addBox(w, 0.1, 0.15, frameMat, 0, h/4, 0, 0, group, false); // Horizontal Cima
+  addBox(w, 0.1, 0.15, frameMat, 0, -h/4, 0, 0, group, false); // Horizontal Baixo
 
   scene.add(group);
 
-  // Luz da Janela (Reduzida de 20 para 2)
-  const sun = new THREE.SpotLight(0xfff5e6, 2, 30, Math.PI / 4, 0.5, 1.5);
-  sun.position.set(x * 0.9, ROOM_HEIGHT - 2, z * 0.9);
-  sun.target.position.set(0, 0, 0);
+  // ===== LUZ DO SOL ENTRANDO =====
+  // Direcional apontando para o centro do museu
+  const sun = new THREE.DirectionalLight(0xfff5e6, 2.5);
+  sun.position.set(x * 1.5, ROOM_HEIGHT, z * 1.5); 
+  sun.target.position.set(0, 0, 0); 
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.bias = -0.0001;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 50;
+  sun.shadow.camera.left = -5;
+  sun.shadow.camera.right = 5;
+  sun.shadow.camera.top = 5;
+  sun.shadow.camera.bottom = -5;
   scene.add(sun);
   scene.add(sun.target);
+
+  // Feixe de luz visível retangular (Volumétrico)
+  const beamMat = new THREE.MeshBasicMaterial({ 
+    color: 0xfff5e6, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false 
+  });
+  
+  // Simula o feixe de luz retangular batendo no chão
+  const beamGeom = new THREE.BoxGeometry(w * 0.9, 25, 12);
+  const beam = new THREE.Mesh(beamGeom, beamMat);
+  // Posiciona o feixe no chão e inclina para vir da janela
+  beam.position.set(0, -4, 5); 
+  beam.rotation.x = Math.PI / 8; 
+  group.add(beam);
 }
 
 function addChandelier() {
@@ -487,40 +516,54 @@ function addChandelier() {
     candle.position.set(cx, 0.3, cz);
     group.add(candle);
 
-    // Luz das velas reduzida de 2 para 0.4
-    const light = new THREE.PointLight(0xffaa55, 0.4, 8, 2);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffdd55 }));
+    flame.position.set(cx, 0.65, cz);
+    group.add(flame);
+
+    const light = new THREE.PointLight(0xffaa55, 0.8, 10, 2);
     light.position.set(cx, 0.6, cz);
     group.add(light);
   }
 
   scene.add(group);
 
-  // Luz central do lustre reduzida de 5 para 1.5
-  const mainLight = new THREE.PointLight(0xffddaa, 1.5, 20, 2);
+  const mainLight = new THREE.PointLight(0xffddaa, 4, 25, 2);
   mainLight.position.set(0, ROOM_HEIGHT - 2, 0);
   mainLight.castShadow = true;
   scene.add(mainLight);
 }
 
-function addStatue(x, z, angle) {
+// ESTÁTUA DE CHAPÉU DE CHEF
+function addChefHatStatue(x, z, angle) {
   const group = new THREE.Group();
   group.position.set(x, 0, z);
   group.rotation.y = -angle + Math.PI / 2;
 
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 1.2), M.marble);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 1.6), M.marble);
   base.position.y = 0.9; base.castShadow = true; base.receiveShadow = true; group.add(base);
   
-  const trim = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.1, 1.4), M.gold);
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.15, 1.8), M.gold);
   trim.position.y = 1.8; group.add(trim);
 
-  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 1.2, 8), M.marble);
-  torso.position.y = 2.4; torso.castShadow = true; group.add(torso);
+  const hatGroup = new THREE.Group();
+  hatGroup.position.y = 1.8;
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), M.marble);
-  head.position.y = 3.2; head.castShadow = true; group.add(head);
+  const hatBase = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.5, 0.8, 16), M.marble);
+  hatBase.position.y = 0.4; hatBase.castShadow = true; hatGroup.add(hatBase);
 
+  const hatTop = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), M.marble);
+  hatTop.position.y = 1.1; hatTop.scale.set(1, 1.2, 1); hatTop.castShadow = true; hatGroup.add(hatTop);
+
+  for(let i=0; i<8; i++) {
+    const a = (i/8) * Math.PI * 2;
+    const fold = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), M.marble);
+    fold.position.set(Math.cos(a)*0.7, 0.9, Math.sin(a)*0.7);
+    hatGroup.add(fold);
+  }
+
+  group.add(hatGroup);
   scene.add(group);
-  addCollider(x - 0.7, x + 0.7, z - 0.7, z + 0.7);
+  addCollider(x - 0.9, x + 0.9, z - 0.9, z + 0.9);
 }
 
 function addReadingArea(x, z, angle) {
@@ -544,8 +587,7 @@ function addReadingArea(x, z, angle) {
   const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.4, 16), M.marble);
   lampShade.position.set(0, 1.4, 0); group.add(lampShade);
 
-  // Luz da mesa reduzida de 1.5 para 0.6
-  const lampLight = new THREE.PointLight(0xffeedd, 0.6, 4, 2);
+  const lampLight = new THREE.PointLight(0xffeedd, 1.2, 5, 2);
   lampLight.position.set(0, 1.3, 0); group.add(lampLight);
 
   const chair1 = createChair(); chair1.position.set(-0.7, 0, -0.9); group.add(chair1);
@@ -631,8 +673,7 @@ function createExhibit(data, x, z) {
 
   scene.add(group);
 
-  // Luz do pedestal drásticamente reduzida de 2 para 0.4
-  const light = new THREE.PointLight(0x00ffff, 0.4, 4, 2);
+  const light = new THREE.PointLight(0x00ffff, 0.8, 4, 2);
   light.position.set(x, 1.5, z); scene.add(light);
   group.userData.light = light; 
 }
@@ -656,20 +697,26 @@ function addEasterEgg() {
    PARTÍCULAS
    ========================================================= */
 function buildParticles() {
-  const dCount = 800;
+  const dCount = 1500;
   const dGeom = new THREE.BufferGeometry();
   const dPos = new Float32Array(dCount * 3);
+  const dColors = new Float32Array(dCount * 3);
+  
   for (let i = 0; i < dCount; i++) {
     const r = Math.random() * ROOM_RADIUS;
     const theta = Math.random() * Math.PI * 2;
     dPos[i * 3] = Math.cos(theta) * r;
     dPos[i * 3 + 1] = Math.random() * ROOM_HEIGHT;
     dPos[i * 3 + 2] = Math.sin(theta) * r;
+
+    const color = new THREE.Color().setHSL(0.1, 0.5, 0.5 + Math.random() * 0.5);
+    dColors[i * 3] = color.r; dColors[i * 3 + 1] = color.g; dColors[i * 3 + 2] = color.b;
   }
   dGeom.setAttribute("position", new THREE.BufferAttribute(dPos, 3));
-  
+  dGeom.setAttribute("color", new THREE.BufferAttribute(dColors, 3));
+
   const dMat = new THREE.PointsMaterial({
-    color: 0xfff8e7, size: 0.03, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending
+    size: 0.05, vertexColors: true, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending
   });
   dustParticles = new THREE.Points(dGeom, dMat);
   scene.add(dustParticles);
@@ -938,7 +985,7 @@ function animate() {
     if (group.userData.ring) group.userData.ring.rotation.z += delta * 1.5;
     if (group.userData.book) {
       group.userData.book.position.y = group.userData.bookBaseY + Math.sin(elapsed * 2 + group.position.z) * 0.05;
-      if (group.userData.light) group.userData.light.intensity = 0.4 + Math.sin(elapsed * 3) * 0.1; // Pulsação sutil
+      if (group.userData.light) group.userData.light.intensity = 0.8 + Math.sin(elapsed * 3) * 0.2;
     }
   });
 
