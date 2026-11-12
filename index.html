@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESCOFFIER — The Interactive Museum</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- TELA INICIAL -->
+    <div id="startScreen" class="screen">
+      <div class="start-card">
+        <p class="eyebrow">MUSEU HISTÓRICO INTERATIVO</p>
+        <h1>ESCOFFIER</h1>
+        <h2>THE INTERACTIVE MUSEUM</h2>
+        <p class="dates">AUGUSTE ESCOFFIER · 1846 — 1935</p>
+        <p class="tagline">The man who helped transform modern cuisine.</p>
+
+        <div class="controls-grid">
+          <div><span class="key">W A S D</span> Caminhar</div>
+          <div><span class="key">MOUSE</span> Olhar</div>
+          <div><span class="key">SHIFT</span> Correr</div>
+          <div><span class="key">E</span> Interagir</div>
+          <div><span class="key">H</span> Liberar / Travar Mouse</div>
+          <div><span class="key">ESC</span> Pausar</div>
+        </div>
+
+        <button id="startButton">Entrar no Museu</button>
+        <p class="small">Recomendado: tela cheia, fones de ouvido e mouse.</p>
+      </div>
+    </div>
+
+    <!-- PROMPT DE INTERAÇÃO -->
+    <div id="interactPrompt" class="prompt hidden">
+      <span class="key">E</span>
+      <span id="interactName">Exposição</span>
+    </div>
+
+    <!-- MENU DE PAUSA -->
+    <div id="pauseMenu" class="overlay hidden">
+      <div class="pause-card">
+        <p class="eyebrow">MUSEU PAUSADO</p>
+        <h2>Escolha uma opção</h2>
+
+        <button id="continueButton">Continuar explorando</button>
+        <button id="restartButton" class="secondary">Reiniciar experiência</button>
+
+        <label class="volume-label" for="volumeSlider">
+          Volume <span id="volumeValue">60%</span>
+        </label>
+        <input id="volumeSlider" type="range" min="0" max="100" value="60" />
+
+        <p class="small">Pressione ESC novamente ou clique em continuar.</p>
+      </div>
+    </div>
+
+    <!-- LIVRO / APRESENTAÇÃO -->
+    <div id="bookOverlay" class="overlay hidden">
+      <div class="book">
+        <div id="bookPage" class="book-page"></div>
+
+        <div class="book-controls">
+          <button id="prevPage" class="book-btn">← Anterior</button>
+          <span id="pageIndicator">1 / 1</span>
+          <button id="nextPage" class="book-btn">Próxima →</button>
+          <button id="closeBook" class="book-btn close">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD DE CONFIGURAÇÕES -->
+    <div id="settingsHud" class="hidden">
+      <div class="hud-panel">
+        <h3>⚙️ Configurações</h3>
+        <label>Volume <input type="range" id="hudVolume" min="0" max="100" value="60"></label>
+        <label>Qualidade Gráfica
+          <select id="hudQuality">
+            <option value="low">Baixa</option>
+            <option value="medium" selected>Média</option>
+            <option value="high">Alta</option>
+          </select>
+        </label>
+        <label>Sombras <input type="checkbox" id="hudShadows" checked></label>
+        <label>Tecla de Interação <input type="text" id="hudKeyInteract" value="E" maxlength="1"></label>
+        <label>Tecla de Pausa <input type="text" id="hudKeyPause" value="H" maxlength="1"></label>
+        <button id="hudClose">Fechar</button>
+      </div>
+    </div>
+    <button id="hudToggle" class="hud-toggle">⚙️</button>
+
+    <script type="module" src="/script.js"></script>
+  </body>
+</html>
