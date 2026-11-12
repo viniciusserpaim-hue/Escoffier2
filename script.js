@@ -3,6 +3,7 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 /* =========================================================
    DETECÇÃO MOBILE E VARIÁVEIS DO JOYSTICK
@@ -199,8 +200,12 @@ init();
 
 function init() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x111111); 
-  scene.fog = new THREE.FogExp2(0x111111, 0.015); 
+  scene.background = new THREE.Color(0x1a1512); // Fundo quente escuro
+  scene.fog = new THREE.FogExp2(0x1a1512, 0.02); 
+
+  // ENVIRONMENT MAP: O segredo do reflexo "Unreal Engine"
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 200);
   camera.position.set(0, EYE_HEIGHT, 10);
@@ -214,17 +219,16 @@ function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  
-  // Exposição reduzida para equilíbrio
-  renderer.toneMappingExposure = 0.55; 
+  renderer.toneMappingExposure = 0.9; // Exposição balanceada
   
   document.getElementById("app").appendChild(renderer.domElement);
 
   const renderScene = new RenderPass(scene, camera);
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.2, 0.2, 0.9);
-  bloomPass.threshold = 1.1; 
-  bloomPass.strength = 0.2;
-  bloomPass.radius = 0.1;
+  // Bloom: Apenas para brilhar os lustres e ouro
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.3, 0.85);
+  bloomPass.threshold = 1.0; 
+  bloomPass.strength = 0.4;
+  bloomPass.radius = 0.3;
 
   composer = new EffectComposer(renderer);
   composer.addPass(renderScene);
@@ -279,20 +283,22 @@ function makeCanvasTexture(width, height, draw, repeatX = 1, repeatY = 1) {
 }
 
 function createTextures() {
+  // Piso de Mármore
   const floorColor = makeCanvasTexture(1024, 1024, (ctx, w, h) => {
     const tileSize = 128;
     for (let x = 0; x < w; x += tileSize) {
       for (let y = 0; y < h; y += tileSize) {
         const isDark = (x / tileSize + y / tileSize) % 2 === 0;
-        ctx.fillStyle = isDark ? "#9e978d" : "#4a453e"; 
+        ctx.fillStyle = isDark ? "#3a3530" : "#1a1714"; // Mármore escuro e claro
         ctx.fillRect(x, y, tileSize, tileSize);
-        ctx.strokeStyle = `rgba(0,0,0, 0.1)`;
+        ctx.strokeStyle = `rgba(255,255,255, 0.05)`;
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(x, y + Math.random() * tileSize); ctx.lineTo(x + tileSize, y + Math.random() * tileSize); ctx.stroke();
       }
     }
   }, 3, 3);
 
+  // Parede de Estuque com Painéis
   const wallColor = makeCanvasTexture(512, 512, (ctx, w, h) => {
     ctx.fillStyle = "#d1c9b8"; ctx.fillRect(0, 0, w, h); 
     ctx.fillStyle = "#2b160a"; ctx.fillRect(0, h * 0.7, w, h * 0.3); 
@@ -318,18 +324,7 @@ function createTextures() {
     }
   });
 
-  const skyTexture = makeCanvasTexture(1024, 512, (ctx, w, h) => {
-    const gradient = ctx.createLinearGradient(0, 0, 0, h);
-    gradient.addColorStop(0, "#2c4a6b"); // Azul mais escuro
-    gradient.addColorStop(1, "#c2a786"); // Tom de pôr do sol suave
-    ctx.fillStyle = gradient; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-    for(let i=0; i<15; i++) {
-      ctx.beginPath(); ctx.arc(Math.random()*w, Math.random()*h*0.8, Math.random()*50+20, 0, Math.PI*2); ctx.fill();
-    }
-  });
-
-  return { floorColor, wallColor, woodTexture, sketchTexture, skyTexture };
+  return { floorColor, wallColor, woodTexture, sketchTexture };
 }
 
 /* =========================================================
@@ -339,19 +334,20 @@ function buildRotunda() {
   const tex = createTextures();
 
   M = {
-    floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.7, metalness: 0.1 }),
+    // Piso reflexivo (Metalness alto, Roughness baixo)
+    floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.15, metalness: 0.9, envMapIntensity: 1.5 }),
     wall: new THREE.MeshStandardMaterial({ map: tex.wallColor, roughness: 0.9, metalness: 0.0 }),
     wood: new THREE.MeshStandardMaterial({ map: tex.woodTexture, roughness: 0.8, metalness: 0.1 }),
-    // Mármore cinza pedra (evita estourar no branco)
-    marble: new THREE.MeshStandardMaterial({ color: 0xb0a89a, roughness: 0.6, metalness: 0.1 }), 
-    gold: new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4, metalness: 0.8 }),
+    // Mármore polido (Reflete o ambiente)
+    marble: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.2, metalness: 0.1, envMapIntensity: 1.0 }), 
+    gold: new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.15, metalness: 1.0, envMapIntensity: 1.5 }),
     sketch: new THREE.MeshStandardMaterial({ map: tex.sketchTexture, roughness: 0.8 }),
     book: new THREE.MeshStandardMaterial({ color: 0x5a1c1c, roughness: 0.6 }),
-    paper: new THREE.MeshStandardMaterial({ color: 0xd1c9b8, roughness: 0.9 }),
-    glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 1.5 }),
-    windowGlass: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 }) 
+    paper: new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.9 }),
+    glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 2.0 }),
   };
 
+  // Paredes Sólidas
   const floor = new THREE.Mesh(new THREE.CircleGeometry(ROOM_RADIUS, 64), M.floor);
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
@@ -361,41 +357,34 @@ function buildRotunda() {
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS, ROOM_RADIUS, ROOM_HEIGHT, 64, 1, true), M.wall);
   wall.position.y = ROOM_HEIGHT / 2; wall.receiveShadow = true; scene.add(wall);
 
-  const skyMat = new THREE.MeshBasicMaterial({ map: tex.skyTexture, side: THREE.BackSide });
-  const skybox = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS + 5, ROOM_RADIUS + 5, ROOM_HEIGHT * 2, 32), skyMat);
-  skybox.position.y = ROOM_HEIGHT / 2;
-  scene.add(skybox);
-
-  const numSections = 16;
-  for (let i = 0; i < numSections; i++) {
-    const angle = (i / numSections) * Math.PI * 2;
+  // Arquitetura (Colunas)
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2;
     const px = Math.cos(angle) * (ROOM_RADIUS - 0.5);
     const pz = Math.sin(angle) * (ROOM_RADIUS - 0.5);
 
-    if (i % 2 === 0) {
-      const colGroup = new THREE.Group();
-      colGroup.position.set(px, 0, pz);
-      colGroup.rotation.y = -angle;
+    const colGroup = new THREE.Group();
+    colGroup.position.set(px, 0, pz);
+    colGroup.rotation.y = -angle;
 
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, ROOM_HEIGHT, 16), M.marble);
-      shaft.position.y = ROOM_HEIGHT / 2; shaft.castShadow = true; shaft.receiveShadow = true;
-      colGroup.add(shaft);
-      addBox(1.2, 0.5, 1.2, M.marble, 0, ROOM_HEIGHT - 0.25, 0, 0, colGroup, false);
-      addBox(1.0, 0.3, 1.0, M.gold, 0, ROOM_HEIGHT - 0.6, 0, 0, colGroup, false);
-      addBox(1.2, 0.4, 1.2, M.marble, 0, 0.2, 0, 0, colGroup, false);
-      scene.add(colGroup);
-    } else {
-      addWindow(px, pz, angle);
-    }
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, ROOM_HEIGHT, 16), M.marble);
+    shaft.position.y = ROOM_HEIGHT / 2; shaft.castShadow = true; shaft.receiveShadow = true;
+    colGroup.add(shaft);
+    addBox(1.2, 0.5, 1.2, M.marble, 0, ROOM_HEIGHT - 0.25, 0, 0, colGroup, false);
+    addBox(1.0, 0.3, 1.0, M.gold, 0, ROOM_HEIGHT - 0.6, 0, 0, colGroup, false);
+    addBox(1.2, 0.4, 1.2, M.marble, 0, 0.2, 0, 0, colGroup, false);
+    scene.add(colGroup);
   }
 
-  for (let i = 0; i < numSections; i++) {
-    const angle = (i / numSections) * Math.PI * 2 + (Math.PI / numSections);
+  // Estantes
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2 + (Math.PI / 16);
     const sx = Math.cos(angle) * (ROOM_RADIUS - 1.2);
     const sz = Math.sin(angle) * (ROOM_RADIUS - 1.2);
     buildBookshelf(sx, sz, angle);
   }
 
+  // Estátuas de Chapéu de Chef
   for (let i = 0; i < 8; i++) {
     const angle = (i / 8) * Math.PI * 2 + Math.PI/8;
     const r = 11;
@@ -404,6 +393,7 @@ function buildRotunda() {
     addChefHatStatue(x, z, angle);
   }
 
+  // Mesas
   for (let i = 0; i < 4; i++) {
     const angle = (i / 4) * Math.PI * 2 + Math.PI/4;
     const r = 5;
@@ -412,6 +402,7 @@ function buildRotunda() {
     addReadingArea(x, z, angle);
   }
 
+  // Exposições
   EXHIBIT_IDS.forEach((id, index) => {
     const data = EXHIBITS[id]; if (!data) return;
     const angle = EXHIBIT_ANGLES[index];
@@ -421,66 +412,31 @@ function buildRotunda() {
 
   addChandelier();
 
-  // ===== ILUMINAÇÃO AMBIENTE BALANCEADA =====
-  const ambient = new THREE.AmbientLight(0xfffaee, 0.2); 
+  // ===== ILUMINAÇÃO ESTILO UNREAL (Cinematográfica) =====
+  const ambient = new THREE.AmbientLight(0xffffff, 0.1); // Bem baixo, ambiente vem do IBL
   scene.add(ambient);
   
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.3); 
+  const hemi = new THREE.HemisphereLight(0xfffaee, 0x2b1d14, 0.3); 
   scene.add(hemi);
-}
 
-function addWindow(x, z, angle) {
-  const group = new THREE.Group();
-  group.position.set(x, ROOM_HEIGHT / 2, z);
-  group.rotation.y = -angle + Math.PI / 2;
-
-  const w = 4.0, h = 8.0;
-  const frameMat = M.wood;
-
-  const glass = new THREE.Mesh(new THREE.PlaneGeometry(w, h), M.windowGlass);
-  group.add(glass);
-
-  addBox(w + 0.4, 0.4, 0.3, frameMat, 0, h/2, 0, 0, group, false);
-  addBox(w + 0.4, 0.4, 0.3, frameMat, 0, -h/2, 0, 0, group, false);
-  addBox(0.4, h + 0.4, 0.3, frameMat, -w/2, 0, 0, 0, group, false);
-  addBox(0.4, h + 0.4, 0.3, frameMat, w/2, 0, 0, 0, group, false);
-  addBox(0.1, h, 0.15, frameMat, 0, 0, 0, 0, group, false); 
-  addBox(w, 0.1, 0.15, frameMat, 0, 0, 0, 0, group, false); 
-  addBox(w, 0.1, 0.15, frameMat, 0, h/4, 0, 0, group, false); 
-  addBox(w, 0.1, 0.15, frameMat, 0, -h/4, 0, 0, group, false); 
-
-  scene.add(group);
-
-  // LUZ DO SOL SUAVE (Reduzida de 2.5 para 0.8)
-  const sun = new THREE.DirectionalLight(0xffe8cc, 0.8);
-  sun.position.set(x * 1.5, ROOM_HEIGHT, z * 1.5); 
-  sun.target.position.set(0, 0, 0); 
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.camera.near = 1;
-  sun.shadow.camera.far = 50;
-  sun.shadow.camera.left = -5;
-  sun.shadow.camera.right = 5;
-  sun.shadow.camera.top = 5;
-  sun.shadow.camera.bottom = -5;
-  scene.add(sun);
-  scene.add(sun.target);
-
-  // Feixe de luz volumétrico SUTIL (Reduzido de 0.06 para 0.02 de opacidade)
-  const beamMat = new THREE.MeshBasicMaterial({ 
-    color: 0xffe8cc, transparent: true, opacity: 0.02, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false 
-  });
-  
-  const beamGeom = new THREE.BoxGeometry(w * 0.8, 25, 8);
-  const beam = new THREE.Mesh(beamGeom, beamMat);
-  beam.position.set(0, -4, 4); 
-  beam.rotation.x = Math.PI / 8; 
-  group.add(beam);
+  // Luz principal (Sol / Skylight)
+  const dirLight = new THREE.DirectionalLight(0xffe8cc, 1.5);
+  dirLight.position.set(10, 20, 10);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(4096, 4096); // Sombras de altíssima qualidade
+  dirLight.shadow.camera.near = 1;
+  dirLight.shadow.camera.far = 50;
+  dirLight.shadow.camera.left = -15;
+  dirLight.shadow.camera.right = 15;
+  dirLight.shadow.camera.top = 15;
+  dirLight.shadow.camera.bottom = -15;
+  dirLight.shadow.bias = -0.0005;
+  scene.add(dirLight);
 }
 
 function addChandelier() {
   const group = new THREE.Group();
-  group.position.set(0, ROOM_HEIGHT - 1.5, 0);
+  group.position.set(0, ROOM_HEIGHT - 2, 0);
 
   const center = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), M.gold);
   group.add(center);
@@ -498,21 +454,25 @@ function addChandelier() {
     candle.position.set(cx, 0.3, cz);
     group.add(candle);
 
+    // Lâmpada brilhante para o Bloom
     const flame = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffdd55 }));
     flame.position.set(cx, 0.65, cz);
     group.add(flame);
 
-    const light = new THREE.PointLight(0xffaa55, 0.3, 8, 2);
+    // Luz física
+    const light = new THREE.PointLight(0xffcc88, 1.5, 12, 2);
     light.position.set(cx, 0.6, cz);
+    light.castShadow = true;
     group.add(light);
   }
 
   scene.add(group);
 
-  // Luz Central do Lustre (Reduzida de 4 para 1.2)
-  const mainLight = new THREE.PointLight(0xffddaa, 1.2, 20, 2);
-  mainLight.position.set(0, ROOM_HEIGHT - 2, 0);
+  // Luz Central do Lustre
+  const mainLight = new THREE.PointLight(0xffddaa, 4, 30, 2);
+  mainLight.position.set(0, ROOM_HEIGHT - 2.5, 0);
   mainLight.castShadow = true;
+  mainLight.shadow.bias = -0.0001;
   scene.add(mainLight);
 }
 
@@ -569,7 +529,7 @@ function addReadingArea(x, z, angle) {
   const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.4, 16), M.marble);
   lampShade.position.set(0, 1.4, 0); group.add(lampShade);
 
-  const lampLight = new THREE.PointLight(0xffeedd, 0.6, 4, 2);
+  const lampLight = new THREE.PointLight(0xffeedd, 1.5, 5, 2);
   lampLight.position.set(0, 1.3, 0); group.add(lampLight);
 
   const chair1 = createChair(); chair1.position.set(-0.7, 0, -0.9); group.add(chair1);
@@ -655,7 +615,7 @@ function createExhibit(data, x, z) {
 
   scene.add(group);
 
-  const light = new THREE.PointLight(0x00ffff, 0.5, 3, 2);
+  const light = new THREE.PointLight(0x00ffff, 1.0, 4, 2);
   light.position.set(x, 1.5, z); scene.add(light);
   group.userData.light = light; 
 }
@@ -676,7 +636,7 @@ function addEasterEgg() {
 }
 
 /* =========================================================
-   PARTÍCULAS
+   PARTÍCULAS (Poeira volumétrica)
    ========================================================= */
 function buildParticles() {
   const dCount = 1500;
@@ -698,7 +658,7 @@ function buildParticles() {
   dGeom.setAttribute("color", new THREE.BufferAttribute(dColors, 3));
 
   const dMat = new THREE.PointsMaterial({
-    size: 0.04, vertexColors: true, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending
+    size: 0.04, vertexColors: true, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending
   });
   dustParticles = new THREE.Points(dGeom, dMat);
   scene.add(dustParticles);
@@ -967,7 +927,7 @@ function animate() {
     if (group.userData.ring) group.userData.ring.rotation.z += delta * 1.5;
     if (group.userData.book) {
       group.userData.book.position.y = group.userData.bookBaseY + Math.sin(elapsed * 2 + group.position.z) * 0.05;
-      if (group.userData.light) group.userData.light.intensity = 0.5 + Math.sin(elapsed * 3) * 0.1;
+      if (group.userData.light) group.userData.light.intensity = 1.0 + Math.sin(elapsed * 3) * 0.2;
     }
   });
 
