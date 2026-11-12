@@ -12,51 +12,51 @@ const EXHIBITS = {
     room: "ENTRADA · WELCOME",
     title: "Bem-vindo ao Museu Escoffier",
     pages: [
-      { title: "AUGUSTE ESCOFFIER", date: "1846 — 1935", body: ["Este museu apresenta a trajetória de Auguste Escoffier, um dos chefs franceses mais influentes da história da gastronomia.", "Ele nasceu em 1846, na França, e viveu até 1935. Durante esse período, participou da transformação das cozinhas profissionais.", "Caminhe pela rotunda e interaja com as exposições."], note: "Use W A S D para caminhar, o mouse para olhar e E para interagir.", image: "assets/images/escoffier-portrait.jpg" },
+      { title: "AUGUSTE ESCOFFIER", date: "1846 — 1935", body: ["Este museu apresenta a trajetória de Auguste Escoffier, um dos chefs franceses mais influentes da história da gastronomia.", "Ele nasceu em 1846, na França, e viveu até 1935. Durante esse período, participou da transformação das cozinhas profissionais.", "Caminhe pela rotunda e interaja com as exposições."], note: "Use W A S D para caminhar, o mouse para olhar e E para interagir.", image: "/assets/images/escoffier-portrait.jpg" },
       { title: "COMO EXPLORAR", date: "MUSEU INTERATIVO", body: ["Aproxime-se de uma mesa iluminada. Quando o nome da exposição aparecer, pressione E.", "Pressione H para liberar ou travar o mouse. Pressione ESC para abrir o menu de pausa."], note: "O objetivo é aprender de forma visual e organizada." },
-      { title: "O REI DOS COZINHEIROS", date: "UM TÍTULO HISTÓRICO", body: ["Escoffier ficou conhecido como 'o rei dos cozinheiros e o cozinheiro dos reis'.", "Este título reflete sua posição única: ele cozinhou para monarcas, presidentes e celebridades.", "Sua influência foi tão grande que ele se tornou uma das primeiras 'celebridades' da gastronomia mundial."], note: "O título foi cunhado pela imprensa francesa no início do século XX.", image: "assets/images/escoffier-portrait.jpg" }
+      { title: "O REI DOS COZINHEIROS", date: "UM TÍTULO HISTÓRICO", body: ["Escoffier ficou conhecido como 'o rei dos cozinheiros e o cozinheiro dos reis'.", "Este título reflete sua posição única: ele cozinhou para monarcas, presidentes e celebridades.", "Sua influência foi tão grande que ele se tornou uma das primeiras 'celebridades' da gastronomia mundial."], note: "O título foi cunhado pela imprensa francesa no início do século XX.", image: "/assets/images/escoffier-portrait.jpg" }
     ]
   },
   s1: { room: "SALA 01 · THE BEGINNING", title: "O Começo", pages: [
-    { title: "O COMEÇO", date: "28 DE OUTUBRO DE 1846", body: ["Auguste Escoffier nasceu em Villeneuve-Loubet, uma pequena localidade no sul da França, em 28 de outubro de 1846.", "A região fazia parte de uma França marcada por tradições culinárias locais.", "Curiosamente, seu primeiro sonho não era a culinária, mas sim a escultura."], note: "Villeneuve-Loubet fica próxima de Nice.", image: "assets/images/escoffier-jovem.jpg" },
-    { title: "APRENDIZ EM NICE", date: "1859", body: ["Aos 13 anos, Escoffier começou a trabalhar como aprendiz no restaurante de seu tio, em Nice.", "Esse foi seu primeiro contato profissional com uma cozinha de restaurante.", "O ambiente era duro, mas o jovem Escoffier rapidamente se destacou."], note: "O aprendizado prático era comum no século XIX.", image: "assets/images/nice-cozinha.jpg" },
+    { title: "O COMEÇO", date: "28 DE OUTUBRO DE 1846", body: ["Auguste Escoffier nasceu em Villeneuve-Loubet, uma pequena localidade no sul da França, em 28 de outubro de 1846.", "A região fazia parte de uma França marcada por tradições culinárias locais.", "Curiosamente, seu primeiro sonho não era a culinária, mas sim a escultura."], note: "Villeneuve-Loubet fica próxima de Nice.", image: "/assets/images/escoffier-jovem.jpg" },
+    { title: "APRENDIZ EM NICE", date: "1859", body: ["Aos 13 anos, Escoffier começou a trabalhar como aprendiz no restaurante de seu tio, em Nice.", "Esse foi seu primeiro contato profissional com uma cozinha de restaurante.", "O ambiente era duro, mas o jovem Escoffier rapidamente se destacou."], note: "O aprendizado prático era comum no século XIX.", image: "/assets/images/nice-cozinha.jpg" },
     { title: "PRIMEIROS PASSOS", type: "map", date: "1846 — 1859", nodes: ["Nascimento na França", "Infância no sul", "Sonho de ser escultor", "Aprendiz em Nice", "Fundamentos da cozinha"], body: ["A formação de Escoffier começou cedo. A experiência em Nice foi o ponto de partida."] },
     { title: "A INFLUÊNCIA DA AVÓ", date: "INFÂNCIA", body: ["Antes de entrar na cozinha profissional, Escoffier aprendeu muito observando sua avó cozinhar.", "Foi ela quem despertou nele o gosto pelos aromas e texturas.", "Essa influência familiar foi fundamental para sua filosofia culinária."], note: "A culinária do sul da França era marcada por azeite e ervas." }
   ]},
   s2: { room: "SALA 02 · THE FIRST KITCHEN", title: "A Primeira Cozinha", pages: [
-    { title: "PARIS E O PETIT MOULIN ROUGE", date: "DÉCADA DE 1860", body: ["Escoffier seguiu para Paris, centro da gastronomia europeia.", "Trabalhou no Le Petit Moulin Rouge.", "A cozinha parisiense era exigente: muitos pedidos, equipes grandes e necessidade de coordenação."], note: "Paris era um dos principais centros gastronômicos.", image: "assets/images/paris-seculo-xix.jpg" },
+    { title: "PARIS E O PETIT MOULIN ROUGE", date: "DÉCADA DE 1860", body: ["Escoffier seguiu para Paris, centro da gastronomia europeia.", "Trabalhou no Le Petit Moulin Rouge.", "A cozinha parisiense era exigente: muitos pedidos, equipes grandes e necessidade de coordenação."], note: "Paris era um dos principais centros gastronômicos.", image: "/assets/images/paris-seculo-xix.jpg" },
     { title: "A DISCIPLINA NA COZINHA", date: "APRENDIZADO PROFISSIONAL", body: ["Nas cozinhas, cada pessoa tinha uma função. O trabalho precisava ser rápido e repetível.", "Escoffier aprendeu a trabalhar em ritmo intenso.", "Essa experiência ajudaria na organização de grandes equipes."], note: "A divisão de tarefas é central nas cozinhas modernas." },
     { title: "FORMAÇÃO DE UM CHEF", type: "map", date: "DÉCADA DE 1860", nodes: ["Chegada a Paris", "Le Petit Moulin Rouge", "Ritmo intenso", "Observação", "Experiência"], body: ["Cada etapa acrescentava novos conhecimentos a Escoffier."] },
     { title: "A REVOLUÇÃO DO MENU", date: "DÉCADA DE 1860", body: ["Escoffier simplificou os menus, que antes tinham dezenas de pratos.", "Ele defendia refeições bem executadas com poucas opções.", "Essa visão consolidou o formato moderno de menu."], note: "Antes, banquetes tinham mais de 20 pratos." }
   ]},
   s3: { room: "SALA 03 · WAR AND EXPERIENCE", title: "Guerra e Experiência", pages: [
-    { title: "A GUERRA FRANCO-PRUSSIANA", date: "1870 — 1871", body: ["Escoffier serviu como cozinheiro militar.", "Enfrentou o desafio de alimentar muitas pessoas com recursos limitados.", "Esse período é lembrado como parte importante de sua formação."], note: "A Guerra ocorreu entre 1870 e 1871.", image: "assets/images/guerra-franco-prussiana.jpg" },
-    { title: "ORGANIZAÇÃO E ALIMENTAÇÃO", date: "CONTEXTO MILITAR", body: ["O trabalho militar exigia planejamento e coordenação.", "Essa vivência contribuiu para sua visão sobre grandes cozinhas.", "Mais tarde, aplicaria essas ideias em grandes hotéis."], note: "A logística na cozinha foi reforçada aqui.", image: "assets/images/cozinha-militar.jpg" },
+    { title: "A GUERRA FRANCO-PRUSSIANA", date: "1870 — 1871", body: ["Escoffier serviu como cozinheiro militar.", "Enfrentou o desafio de alimentar muitas pessoas com recursos limitados.", "Esse período é lembrado como parte importante de sua formação."], note: "A Guerra ocorreu entre 1870 e 1871.", image: "/assets/images/guerra-franco-prussiana.jpg" },
+    { title: "ORGANIZAÇÃO E ALIMENTAÇÃO", date: "CONTEXTO MILITAR", body: ["O trabalho militar exigia planejamento e coordenação.", "Essa vivência contribuiu para sua visão sobre grandes cozinhas.", "Mais tarde, aplicaria essas ideias em grandes hotéis."], note: "A logística na cozinha foi reforçada aqui.", image: "/assets/images/cozinha-militar.jpg" },
     { title: "APRENDIZADOS DA GUERRA", type: "map", date: "1870 — 1871", nodes: ["Cozinha militar", "Recursos limitados", "Grande escala", "Planejamento", "Disciplina"], body: ["A guerra ofereceu lições sobre organização que marcaram sua trajetória."] },
     { title: "A DISCIPLINA MILITAR NA COZINHA", date: "PÓS-GUERRA", body: ["Escoffier trouxe a disciplina do exército para a cozinha.", "Ele proibiu gritos, bebidas e desordem.", "Essas regras criaram um ambiente de trabalho profissional."], note: "A cozinha moderna deve muito a essa organização." }
   ]},
   s4: { room: "SALA 04 · THE SAVOY REVOLUTION", title: "A Revolução do Savoy", pages: [
-    { title: "ESCOFFIER E CÉSAR RITZ", date: "1890", body: ["Escoffier trabalhou no Hotel Savoy, em Londres, ao lado de César Ritz.", "Ritz cuidava da administração; Escoffier comandava a cozinha.", "A combinação entre hospitalidade e alta gastronomia definiu um novo padrão de luxo."], note: "César Ritz foi uma figura central na hotelaria.", image: "assets/images/savoy-hotel.jpg" },
-    { title: "A BRIGADA DE COZINHA", date: "ORGANIZAÇÃO", body: ["Escoffier sistematizou a divisão de funções.", "Cada setor tinha responsabilidades específicas.", "Esse modelo ficou conhecido como sistema de brigada."], note: "A brigada organizava funções como saucier e pâtissier.", image: "assets/images/brigade-kitchen.jpg" },
-    { title: "A HIERARQUIA", type: "map", date: "SISTEMA DE BRIGADA", nodes: ["Chefe de cozinha", "Sous-chef", "Chefes de partida", "Saucier", "Pâtissier", "Commis"], body: ["A equipe grande trabalhava de forma coordenada, reduzindo atrasos."], image: "assets/images/brigada-ilustracao.jpg" },
+    { title: "ESCOFFIER E CÉSAR RITZ", date: "1890", body: ["Escoffier trabalhou no Hotel Savoy, em Londres, ao lado de César Ritz.", "Ritz cuidava da administração; Escoffier comandava a cozinha.", "A combinação entre hospitalidade e alta gastronomia definiu um novo padrão de luxo."], note: "César Ritz foi uma figura central na hotelaria.", image: "/assets/images/savoy-hotel.jpg" },
+    { title: "A BRIGADA DE COZINHA", date: "ORGANIZAÇÃO", body: ["Escoffier sistematizou a divisão de funções.", "Cada setor tinha responsabilidades específicas.", "Esse modelo ficou conhecido como sistema de brigada."], note: "A brigada organizava funções como saucier e pâtissier.", image: "/assets/images/brigade-kitchen.jpg" },
+    { title: "A HIERARQUIA", type: "map", date: "SISTEMA DE BRIGADA", nodes: ["Chefe de cozinha", "Sous-chef", "Chefes de partida", "Saucier", "Pâtissier", "Commis"], body: ["A equipe grande trabalhava de forma coordenada, reduzindo atrasos."], image: "/assets/images/brigada-ilustracao.jpg" },
     { title: "O NASCIMENTO DO PALACE", date: "FIM DO SÉCULO XIX", body: ["A parceria entre Ritz e Escoffier deu origem ao conceito de 'palace'.", "O Savoy, o Ritz Paris e o Carlton London tornaram-se referências.", "Essa fusão permanece até hoje."], note: "O termo 'ritzy' deriva de César Ritz." }
   ]},
   s5: { room: "SALA 05 · THE CULINARY LEGACY", title: "O Legado Culinário", pages: [
-    { title: "LE GUIDE CULINAIRE", date: "1903", body: ["Escoffier publicou Le Guide Culinaire.", "A obra reuniu receitas, técnicas e organização.", "Escrita com a colaboração de outros cozinheiros."], note: "Uma das obras mais importantes da gastronomia.", image: "assets/images/le-guide-culinaire.jpg" },
-    { title: "UMA OBRA DE REFERÊNCIA", date: "SÉCULO XX", body: ["O livro organizou a cozinha francesa de forma sistemática.", "Documentava métodos, bases e preparos.", "Tornou-se referência para gerações."], note: "Ajudou a padronizar técnicas.", image: "assets/images/guide-culinaire-capa.jpg" },
-    { title: "OS ÚLTIMOS ANOS", date: "1935", body: ["Escoffier faleceu em 12 de fevereiro de 1935, em Monte Carlo.", "Seu trabalho influenciou gerações de chefs.", "Ele é lembrado como uma figura central da gastronomia."], note: "Seu legado inclui técnicas e obras escritas.", image: "assets/images/escoffier-idoso.jpg" },
+    { title: "LE GUIDE CULINAIRE", date: "1903", body: ["Escoffier publicou Le Guide Culinaire.", "A obra reuniu receitas, técnicas e organização.", "Escrita com a colaboração de outros cozinheiros."], note: "Uma das obras mais importantes da gastronomia.", image: "/assets/images/le-guide-culinaire.jpg" },
+    { title: "UMA OBRA DE REFERÊNCIA", date: "SÉCULO XX", body: ["O livro organizou a cozinha francesa de forma sistemática.", "Documentava métodos, bases e preparos.", "Tornou-se referência para gerações."], note: "Ajudou a padronizar técnicas.", image: "/assets/images/guide-culinaire-capa.jpg" },
+    { title: "OS ÚLTIMOS ANOS", date: "1935", body: ["Escoffier faleceu em 12 de fevereiro de 1935, em Monte Carlo.", "Seu trabalho influenciou gerações de chefs.", "Ele é lembrado como uma figura central da gastronomia."], note: "Seu legado inclui técnicas e obras escritas.", image: "/assets/images/escoffier-idoso.jpg" },
     { title: "UM HUMANISTA", date: "ALÉM DA COZINHA", body: ["Escoffier foi tocado pelo desperdício de alimentos.", "Ele organizou a redistribuição de excedentes para os necessitados.", "Seu legado vai além da gastronomia."], note: "Seu ativismo humanitário é pouco conhecido." }
   ]},
   s6: { room: "SALA 06 · ICONIC DISHES", title: "Pratos Icônicos", pages: [
-    { title: "PÊCHE MELBA", date: "DÉCADA DE 1890", body: ["Criado em homenagem à cantora Nellie Melba.", "Combina pêssego, sorvete de baunilha e calda de framboesa.", "Tornou-se um símbolo da alta gastronomia."], note: "Nellie Melba era uma cantora famosa.", image: "assets/images/peche-melba.jpg" },
-    { title: "POIRE BELLE-HÉLÈNE", date: "SÉCULO XIX", body: ["Pera cozida com sorvete e chocolate quente.", "Outra criação doce que atravessou gerações.", "Homenagem à opereta 'La Belle Hélène'."], note: "Referência a Jacques Offenbach.", image: "assets/images/poire-belle-helene.jpg" },
-    { title: "CRÊPE SUZETTE", date: "LENDÁRIO", body: ["Panqueca flambada com licor de laranja.", "Atribuída a Escoffier, fez sucesso nos grandes hotéis.", "O príncipe de Gales sugeriu o nome."], note: "A criação exata é disputada.", image: "assets/images/crepe-suzette.jpg" },
+    { title: "PÊCHE MELBA", date: "DÉCADA DE 1890", body: ["Criado em homenagem à cantora Nellie Melba.", "Combina pêssego, sorvete de baunilha e calda de framboesa.", "Tornou-se um símbolo da alta gastronomia."], note: "Nellie Melba era uma cantora famosa.", image: "/assets/images/peche-melba.jpg" },
+    { title: "POIRE BELLE-HÉLÈNE", date: "SÉCULO XIX", body: ["Pera cozida com sorvete e chocolate quente.", "Outra criação doce que atravessou gerações.", "Homenagem à opereta 'La Belle Hélène'."], note: "Referência a Jacques Offenbach.", image: "/assets/images/poire-belle-helene.jpg" },
+    { title: "CRÊPE SUZETTE", date: "LENDÁRIO", body: ["Panqueca flambada com licor de laranja.", "Atribuída a Escoffier, fez sucesso nos grandes hotéis.", "O príncipe de Gales sugeriu o nome."], note: "A criação exata é disputada.", image: "/assets/images/crepe-suzette.jpg" },
     { title: "MARKETING PESSOAL", date: "CURIOSIDADE", body: ["Escoffier tinha um senso de marketing à frente do tempo.", "Dedicar criações a celebridades garantia publicidade.", "Suas sobremesas eram homenagens."], note: "Isso construiu sua imagem pública." }
   ]},
   s7: { room: "SALA 07 · RESTAURANTS & PARTNERSHIPS", title: "Restaurantes e Parcerias", pages: [
     { title: "LE PETIT MOULIN ROUGE", date: "DÉCADA DE 1860", body: ["Escoffier trabalhou no Le Petit Moulin Rouge.", "Aprimorou suas habilidades em um ambiente de alta demanda."], note: "Restaurante badalado em Paris." },
-    { title: "HOTEL SAVOY & CÉSAR RITZ", date: "1890 — 1897", body: ["No Hotel Savoy, Escoffier e César Ritz formaram uma dupla lendária.", "Ritz cuidava da hospitalidade e Escoffier da gastronomia."], note: "Marco na hotelaria moderna.", image: "assets/images/savoy-hotel.jpg" },
-    { title: "RITZ PARIS & CARLTON", date: "FIM DO SÉCULO XIX", body: ["Trabalharam no Ritz Hotel em Paris e no Carlton em Londres.", "Tornaram-se referências em luxo."], note: "O Ritz Paris foi inaugurado em 1898.", image: "assets/images/ritz-paris.jpg" },
+    { title: "HOTEL SAVOY & CÉSAR RITZ", date: "1890 — 1897", body: ["No Hotel Savoy, Escoffier e César Ritz formaram uma dupla lendária.", "Ritz cuidava da hospitalidade e Escoffier da gastronomia."], note: "Marco na hotelaria moderna.", image: "/assets/images/savoy-hotel.jpg" },
+    { title: "RITZ PARIS & CARLTON", date: "FIM DO SÉCULO XIX", body: ["Trabalharam no Ritz Hotel em Paris e no Carlton em Londres.", "Tornaram-se referências em luxo."], note: "O Ritz Paris foi inaugurado em 1898.", image: "/assets/images/ritz-paris.jpg" },
     { title: "O FIM DA PARCERIA", date: "INÍCIO DO SÉCULO XX", body: ["A parceria terminou com demissões no Savoy.", "Mas logo se reergueram no Ritz e Carlton.", "Consolidaram seu legado."], note: "Revolucionaram a indústria hoteleira." }
   ]},
   final: { room: "FINAL · THE LEGACY", title: "A Linha do Tempo", pages: [
@@ -146,12 +146,12 @@ class AudioManager {
     this.master = this.ctx.createGain(); this.master.gain.value = this.volume; this.master.connect(this.ctx.destination);
   }
   async init() {
-    await this.loadSound("ambient", "assets/audio/ambient-library.mp3");
-    await this.loadSound("step", "assets/audio/step-wood.mp3");
-    await this.loadSound("click", "assets/audio/ui-click.mp3");
-    await this.loadSound("page", "assets/audio/page-turn.mp3");
-    await this.loadSound("open", "assets/audio/book-open.mp3");
-    await this.loadSound("close", "assets/audio/book-close.mp3");
+    await this.loadSound("ambient", "/assets/audio/ambient-library.mp3");
+    await this.loadSound("step", "/assets/audio/step-wood.mp3");
+    await this.loadSound("click", "/assets/audio/ui-click.mp3");
+    await this.loadSound("page", "/assets/audio/page-turn.mp3");
+    await this.loadSound("open", "/assets/audio/book-open.mp3");
+    await this.loadSound("close", "/assets/audio/book-close.mp3");
   }
   start() {
     if (!this.ctx) this.setupContext();
@@ -517,7 +517,7 @@ function createExhibit(data, x, z) {
    ========================================================= */
 function addEasterEgg() {
   const textureLoader = new THREE.TextureLoader();
-  textureLoader.load('assets/images/Easter-Egg.jpg', (texture) => {
+  textureLoader.load('/assets/images/Easter-Egg.jpg', (texture) => {
     texture.colorSpace = THREE.SRGBColorSpace;
     const mat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), mat);
