@@ -5,6 +5,14 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
 /* =========================================================
+   DETECÇÃO MOBILE E VARIÁVEIS DO JOYSTICK
+   ========================================================= */
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+let joystickActive = false;
+let joystickVector = { x: 0, y: 0 };
+let touchStartX = 0, touchStartY = 0;
+
+/* =========================================================
    CONTEÚDO HISTÓRICO (EXPANDIDO)
    ========================================================= */
 const EXHIBITS = {
@@ -197,6 +205,7 @@ function init() {
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 200);
   camera.position.set(0, EYE_HEIGHT, 10);
   camera.lookAt(0, EYE_HEIGHT, 0);
+  camera.rotation.order = 'YXZ'; // Importante para a rotação mobile funcionar bem
 
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -610,12 +619,14 @@ function setupEvents() {
   controls.addEventListener("lock", () => pauseMenu.classList.add("hidden"));
   controls.addEventListener("unlock", () => {
     for (const key in keys) keys[key] = false;
-    if (started && !isPresenting) pauseMenu.classList.remove("hidden");
+    if (started && !isPresenting && !isMobile) pauseMenu.classList.remove("hidden");
   });
 
   startButton.addEventListener("click", () => {
-    started = true; startScreen.classList.add("hidden"); audio.start(); audio.click(); controls.lock();
+    started = true; startScreen.classList.add("hidden"); audio.start(); audio.click();
+    if (!isMobile) controls.lock();
   });
+  
   continueButton.addEventListener("click", () => { audio.start(); audio.click(); pauseMenu.classList.add("hidden"); controls.lock(); });
   restartButton.addEventListener("click", () => window.location.reload());
 
@@ -626,10 +637,10 @@ function setupEvents() {
   nextPageButton.addEventListener("click", () => { if (!currentExhibit) return; if (currentPage < currentExhibit.pages.length - 1) { currentPage++; renderPage("next"); audio.page(); } });
   closeBookButton.addEventListener("click", closeBook);
 
-  renderer.domElement.addEventListener("click", () => { if (started && !isPresenting && !controls.isLocked) controls.lock(); });
+  renderer.domElement.addEventListener("click", () => { if (started && !isPresenting && !controls.isLocked && !isMobile) controls.lock(); });
 
   hudToggle.addEventListener("click", () => { settingsHud.classList.toggle("hidden"); if (controls.isLocked) controls.unlock(); });
-  hudClose.addEventListener("click", () => { settingsHud.classList.add("hidden"); if (started && !isPresenting) controls.lock(); });
+  hudClose.addEventListener("click", () => { settingsHud.classList.add("hidden"); if (started && !isPresenting && !isMobile) controls.lock(); });
   hudQuality.addEventListener("change", () => {
     const q = hudQuality.value;
     if (q === "low") { renderer.setPixelRatio(0.8); renderer.shadowMap.enabled = false; composer.passes[1].enabled = false; }
@@ -639,6 +650,92 @@ function setupEvents() {
   hudShadows.addEventListener("change", () => { renderer.shadowMap.enabled = hudShadows.checked; });
   hudKeyInteract.addEventListener("change", () => { const val = hudKeyInteract.value.toUpperCase(); if (val.length === 1) interactKey = `Key${val}`; });
   hudKeyPause.addEventListener("change", () => { const val = hudKeyPause.value.toUpperCase(); if (val.length === 1) pauseKey = `Key${val}`; });
+
+  // ====== LÓGICA MOBILE ======
+  if (isMobile) {
+    const mobileControls = document.getElementById("mobileControls");
+    const mobileInteractBtn = document.getElementById("mobileInteractBtn");
+    const joystickBase = document.getElementById("joystickBase");
+    const joystickStick = document.getElementById("joystickStick");
+    
+    mobileControls.classList.remove("hidden");
+
+    // Joystick
+    joystickBase.addEventListener("touchstart", (e) => {
+      joystickActive = true;
+      updateJoystick(e.touches[0]);
+    });
+
+    joystickBase.addEventListener("touchmove", (e) => {
+      if (joystickActive) {
+        e.preventDefault();
+        updateJoystick(e.touches[0]);
+      }
+    });
+
+    joystickBase.addEventListener("touchend", () => {
+      joystickActive = false;
+      joystickVector = { x: 0, y: 0 };
+      joystickStick.style.transform = `translate(-50%, -50%)`;
+    });
+
+    function updateJoystick(touch) {
+      const rect = joystickBase.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      let dx = touch.clientX - centerX;
+      let dy = touch.clientY - centerY;
+      
+      const maxDist = rect.width / 2;
+      const distance = Math.sqrt(dx*dx + dy*dy);
+      
+      if (distance > maxDist) {
+        dx = (dx / distance) * maxDist;
+        dy = (dy / distance) * maxDist;
+      }
+      
+      joystickStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      
+      joystickVector.x = dx / maxDist;
+      joystickVector.y = dy / maxDist;
+    }
+
+    // Olhar (Touch Look)
+    const canvas = renderer.domElement;
+    canvas.addEventListener("touchstart", (e) => {
+      if (e.target === canvas) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (e.target === canvas && !isPresenting) {
+        e.preventDefault();
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const deltaX = touchX - touchStartX;
+        const deltaY = touchY - touchStartY;
+        
+        const sensitivity = 0.005;
+        
+        camera.rotation.y -= deltaX * sensitivity;
+        camera.rotation.x -= deltaY * sensitivity;
+        
+        camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+        
+        touchStartX = touchX;
+        touchStartY = touchY;
+      }
+    }, { passive: false });
+
+    // Botão de Interagir Mobile
+    mobileInteractBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      interact();
+    });
+  }
 }
 
 function onResize() {
@@ -662,29 +759,45 @@ function onKeyUp(event) { keys[event.code] = false; }
 /* =========================================================
    INTERAÇÃO
    ========================================================= */
-function interact() { if (!currentInteractable || !controls.isLocked || isPresenting) return; openPresentation(currentInteractable); }
+function interact() { 
+  if (!currentInteractable || isPresenting) return; 
+  if (!isMobile && !controls.isLocked) return; 
+  openPresentation(currentInteractable); 
+}
 
 function updatePrompt() {
-  if (!started || isPresenting || !controls.isLocked) { interactPrompt.classList.add("hidden"); currentInteractable = null; return; }
+  if (!started || isPresenting || (!controls.isLocked && !isMobile)) { 
+    interactPrompt.classList.add("hidden"); 
+    currentInteractable = null; 
+    return; 
+  }
   raycaster.setFromCamera(centerScreen, camera);
   const hits = raycaster.intersectObjects(interactiveMeshes, false);
   if (hits.length > 0 && hits[0].distance < 5.0) {
     const data = hits[0].object.userData.exhibit;
-    if (data) { currentInteractable = data; interactName.textContent = data.title; interactPrompt.classList.remove("hidden"); return; }
+    if (data) { 
+      currentInteractable = data; 
+      interactName.textContent = data.title; 
+      if (!isMobile) interactPrompt.classList.remove("hidden"); 
+      return; 
+    }
   }
-  currentInteractable = null; interactPrompt.classList.add("hidden");
+  currentInteractable = null; 
+  if (!isMobile) interactPrompt.classList.add("hidden");
 }
 
 function openPresentation(data) {
-  currentExhibit = data; currentPage = 0; isPresenting = true; controls.unlock(); interactPrompt.classList.add("hidden");
+  currentExhibit = data; currentPage = 0; isPresenting = true; 
+  if (!isMobile) controls.unlock(); 
+  interactPrompt.classList.add("hidden");
   renderPage("next"); bookOverlay.classList.remove("hidden"); requestAnimationFrame(() => bookOverlay.classList.add("open")); audio.openBook();
 }
 
 function closeBook() {
   if (!isPresenting) return;
   audio.closeBookSound(); bookOverlay.classList.remove("open"); isPresenting = false;
-  if (started) controls.lock();
-  setTimeout(() => { bookOverlay.classList.add("hidden"); currentExhibit = null; if (started && !controls.isLocked) pauseMenu.classList.remove("hidden"); }, 360);
+  if (started && !isMobile) controls.lock();
+  setTimeout(() => { bookOverlay.classList.add("hidden"); currentExhibit = null; if (started && !controls.isLocked && !isMobile) pauseMenu.classList.remove("hidden"); }, 360);
 }
 
 function renderPage() {
@@ -723,8 +836,15 @@ function updatePlayer(delta) {
   const up = new THREE.Vector3(0, 1, 0); const right = new THREE.Vector3().crossVectors(forward, up).normalize();
   const move = new THREE.Vector3();
   
-  if (keys.KeyW) move.add(forward); if (keys.KeyS) move.sub(forward);
-  if (keys.KeyD) move.add(right); if (keys.KeyA) move.sub(right);
+  if (isMobile) {
+    if (joystickVector.y < -0.1) move.add(forward);
+    if (joystickVector.y > 0.1) move.sub(forward);
+    if (joystickVector.x > 0.1) move.add(right);
+    if (joystickVector.x < -0.1) move.sub(right);
+  } else {
+    if (keys.KeyW) move.add(forward); if (keys.KeyS) move.sub(forward);
+    if (keys.KeyD) move.add(right); if (keys.KeyA) move.sub(right);
+  }
 
   if (move.lengthSq() > 0) {
     move.normalize(); 
@@ -755,8 +875,18 @@ function animate() {
   const delta = Math.min(clock.getDelta(), 0.05);
   const elapsed = clock.elapsedTime;
 
-  if (controls.isLocked && !isPresenting) updatePlayer(delta);
+  if ((controls.isLocked || isMobile) && !isPresenting) updatePlayer(delta);
   updatePrompt();
+
+  // Mostrar ou esconder o botão de interagir no mobile
+  if (isMobile) {
+    const btn = document.getElementById("mobileInteractBtn");
+    if (currentInteractable && !isPresenting && started) {
+      btn.classList.remove("hidden");
+    } else {
+      btn.classList.add("hidden");
+    }
+  }
 
   animatedExhibits.forEach((group) => {
     if (group.userData.ring) group.userData.ring.rotation.z += delta * 1.5;

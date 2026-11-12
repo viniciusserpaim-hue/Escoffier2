@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>ESCOFFIER — The Interactive Museum</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
@@ -89,6 +89,19 @@
       </div>
     </div>
     <button id="hudToggle" class="hud-toggle">⚙️</button>
+
+    <!-- CONTROLES MOBILE -->
+    <div id="mobileControls" class="hidden">
+      <!-- Joystick para andar -->
+      <div id="joystickZone">
+        <div id="joystickBase">
+          <div id="joystickStick"></div>
+        </div>
+      </div>
+      
+      <!-- Botão de Interagir -->
+      <button id="mobileInteractBtn" class="hidden">E</button>
+    </div>
 
     <script type="module" src="/script.js"></script>
   </body>
