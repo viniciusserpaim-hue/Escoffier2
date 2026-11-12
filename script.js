@@ -200,18 +200,15 @@ init();
 
 function init() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1a1512); // Fundo quente escuro
+  scene.background = new THREE.Color(0x1a1512); 
   scene.fog = new THREE.FogExp2(0x1a1512, 0.02); 
-
-  // ENVIRONMENT MAP: O segredo do reflexo "Unreal Engine"
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 200);
   camera.position.set(0, EYE_HEIGHT, 10);
   camera.lookAt(0, EYE_HEIGHT, 0);
   camera.rotation.order = 'YXZ';
 
+  // 1. PRIMEIRO O RENDERER
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -219,12 +216,15 @@ function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.9; // Exposição balanceada
-  
+  renderer.toneMappingExposure = 0.9; 
   document.getElementById("app").appendChild(renderer.domElement);
 
+  // 2. DEPOIS O ENVIRONMENT MAP (Para os reflexos)
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  // 3. POST-PROCESSING (Bloom)
   const renderScene = new RenderPass(scene, camera);
-  // Bloom: Apenas para brilhar os lustres e ouro
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.3, 0.85);
   bloomPass.threshold = 1.0; 
   bloomPass.strength = 0.4;
@@ -283,13 +283,12 @@ function makeCanvasTexture(width, height, draw, repeatX = 1, repeatY = 1) {
 }
 
 function createTextures() {
-  // Piso de Mármore
   const floorColor = makeCanvasTexture(1024, 1024, (ctx, w, h) => {
     const tileSize = 128;
     for (let x = 0; x < w; x += tileSize) {
       for (let y = 0; y < h; y += tileSize) {
         const isDark = (x / tileSize + y / tileSize) % 2 === 0;
-        ctx.fillStyle = isDark ? "#3a3530" : "#1a1714"; // Mármore escuro e claro
+        ctx.fillStyle = isDark ? "#3a3530" : "#1a1714"; 
         ctx.fillRect(x, y, tileSize, tileSize);
         ctx.strokeStyle = `rgba(255,255,255, 0.05)`;
         ctx.lineWidth = 2;
@@ -298,7 +297,6 @@ function createTextures() {
     }
   }, 3, 3);
 
-  // Parede de Estuque com Painéis
   const wallColor = makeCanvasTexture(512, 512, (ctx, w, h) => {
     ctx.fillStyle = "#d1c9b8"; ctx.fillRect(0, 0, w, h); 
     ctx.fillStyle = "#2b160a"; ctx.fillRect(0, h * 0.7, w, h * 0.3); 
@@ -334,12 +332,13 @@ function buildRotunda() {
   const tex = createTextures();
 
   M = {
-    // Piso reflexivo (Metalness alto, Roughness baixo)
+    // Piso reflexivo
     floor: new THREE.MeshStandardMaterial({ map: tex.floorColor, roughness: 0.15, metalness: 0.9, envMapIntensity: 1.5 }),
     wall: new THREE.MeshStandardMaterial({ map: tex.wallColor, roughness: 0.9, metalness: 0.0 }),
     wood: new THREE.MeshStandardMaterial({ map: tex.woodTexture, roughness: 0.8, metalness: 0.1 }),
-    // Mármore polido (Reflete o ambiente)
+    // Mármore polido (reflete ambiente)
     marble: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.2, metalness: 0.1, envMapIntensity: 1.0 }), 
+    // Ouro brilhante
     gold: new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.15, metalness: 1.0, envMapIntensity: 1.5 }),
     sketch: new THREE.MeshStandardMaterial({ map: tex.sketchTexture, roughness: 0.8 }),
     book: new THREE.MeshStandardMaterial({ color: 0x5a1c1c, roughness: 0.6 }),
@@ -347,7 +346,6 @@ function buildRotunda() {
     glow: new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00aaff, emissiveIntensity: 2.0 }),
   };
 
-  // Paredes Sólidas
   const floor = new THREE.Mesh(new THREE.CircleGeometry(ROOM_RADIUS, 64), M.floor);
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
@@ -357,7 +355,6 @@ function buildRotunda() {
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(ROOM_RADIUS, ROOM_RADIUS, ROOM_HEIGHT, 64, 1, true), M.wall);
   wall.position.y = ROOM_HEIGHT / 2; wall.receiveShadow = true; scene.add(wall);
 
-  // Arquitetura (Colunas)
   for (let i = 0; i < 16; i++) {
     const angle = (i / 16) * Math.PI * 2;
     const px = Math.cos(angle) * (ROOM_RADIUS - 0.5);
@@ -376,7 +373,6 @@ function buildRotunda() {
     scene.add(colGroup);
   }
 
-  // Estantes
   for (let i = 0; i < 16; i++) {
     const angle = (i / 16) * Math.PI * 2 + (Math.PI / 16);
     const sx = Math.cos(angle) * (ROOM_RADIUS - 1.2);
@@ -384,7 +380,6 @@ function buildRotunda() {
     buildBookshelf(sx, sz, angle);
   }
 
-  // Estátuas de Chapéu de Chef
   for (let i = 0; i < 8; i++) {
     const angle = (i / 8) * Math.PI * 2 + Math.PI/8;
     const r = 11;
@@ -393,7 +388,6 @@ function buildRotunda() {
     addChefHatStatue(x, z, angle);
   }
 
-  // Mesas
   for (let i = 0; i < 4; i++) {
     const angle = (i / 4) * Math.PI * 2 + Math.PI/4;
     const r = 5;
@@ -402,7 +396,6 @@ function buildRotunda() {
     addReadingArea(x, z, angle);
   }
 
-  // Exposições
   EXHIBIT_IDS.forEach((id, index) => {
     const data = EXHIBITS[id]; if (!data) return;
     const angle = EXHIBIT_ANGLES[index];
@@ -413,17 +406,16 @@ function buildRotunda() {
   addChandelier();
 
   // ===== ILUMINAÇÃO ESTILO UNREAL (Cinematográfica) =====
-  const ambient = new THREE.AmbientLight(0xffffff, 0.1); // Bem baixo, ambiente vem do IBL
+  const ambient = new THREE.AmbientLight(0xffffff, 0.1); 
   scene.add(ambient);
   
   const hemi = new THREE.HemisphereLight(0xfffaee, 0x2b1d14, 0.3); 
   scene.add(hemi);
 
-  // Luz principal (Sol / Skylight)
   const dirLight = new THREE.DirectionalLight(0xffe8cc, 1.5);
   dirLight.position.set(10, 20, 10);
   dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(4096, 4096); // Sombras de altíssima qualidade
+  dirLight.shadow.mapSize.set(4096, 4096); 
   dirLight.shadow.camera.near = 1;
   dirLight.shadow.camera.far = 50;
   dirLight.shadow.camera.left = -15;
@@ -454,12 +446,10 @@ function addChandelier() {
     candle.position.set(cx, 0.3, cz);
     group.add(candle);
 
-    // Lâmpada brilhante para o Bloom
     const flame = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffdd55 }));
     flame.position.set(cx, 0.65, cz);
     group.add(flame);
 
-    // Luz física
     const light = new THREE.PointLight(0xffcc88, 1.5, 12, 2);
     light.position.set(cx, 0.6, cz);
     light.castShadow = true;
@@ -468,7 +458,6 @@ function addChandelier() {
 
   scene.add(group);
 
-  // Luz Central do Lustre
   const mainLight = new THREE.PointLight(0xffddaa, 4, 30, 2);
   mainLight.position.set(0, ROOM_HEIGHT - 2.5, 0);
   mainLight.castShadow = true;
@@ -636,7 +625,7 @@ function addEasterEgg() {
 }
 
 /* =========================================================
-   PARTÍCULAS (Poeira volumétrica)
+   PARTÍCULAS
    ========================================================= */
 function buildParticles() {
   const dCount = 1500;
